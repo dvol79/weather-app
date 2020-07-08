@@ -1,0 +1,77 @@
+CREATE TABLE "data" (
+	"id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    "sity"	TEXT,
+	"date"	TEXT NOT NULL UNIQUE,
+	"temp_curr"	REAL NOT NULL,
+    "pressure" REAL,
+	"humidity" REAL,
+	"wind_spid"	REAL,
+	"wind_dirn"	TEXT,
+	"icon" TEXT,
+    "description" TEXT,
+	"update"	DATETIME NOT NULL DEFAULT (datetime(CURRENT_TIMESTAMP, 'localtime'))
+);
+
+DROP TABLE IF EXISTS data;
+
+INSERT INTO `data` 
+( `sity`, `date`, `temp_curr`, `humidity`, `wind_spid`, `wind_dirn`, `icon`, `description` ) 
+VALUES 
+( 'Moscow', '2019-05-01', 15.6, 46.8, 2.0, 'Северный', '01d', 'ясно' ),
+( 'Moscow', '2019-05-02', 10.2, 86.4, 1.0, 'Южный', '04d', 'пасмурно' ),
+( 'Moscow', '2019-05-03', 15.0, 90, 2.0, 'Южный', '03d', 'пасмурно', ),
+( 'Moscow', '2019-05-04', 14.2, 75.2 1.0, 'Южный', '02d', 'слегка облачно' ),
+( 'Moscow', '2019-05-05', 14.75, 70, 3.5, 'Южный', '02d', 'слегка облачно' ),
+( 'Moscow', '2019-05-06', 15.25, 24.0, 2.0, 'Юго-восточный',  '02d', 'слегка облачно' ),
+( 'Moscow', '2019-05-07', 24.4, 34.4, 2.0, 'Южный',  '01d', 'ясно' ),
+( 'Moscow', '2019-05-08', 20.0, 90.4, 2.6, 'Северный',  '09d', 'слабый дождь' ),
+( 'Moscow', '2019-05-09', 18.4, 99.6, 2.0, 'Северо-восточный',  '11d', 'гроза с осадками' ),
+( 'Moscow', '2019-05-10', 22.7, 89.1, 1.8, 'Северный',  '09d', 'слабый дождь' ),
+( 'Moscow', '2019-05-11', 20.3, 60.4, 3, 'Южный',  '10d', 'гроза с осадками' );
+
+SELECT COUNT(*) FROM имя таблицы WHERE  условие
+
+
+// http://openweathermap.org/img/w/01d.png
+// https://openweathermap.org/weather-conditions
+// https://owm.io/forecast5
+
+https://stackoverflow.com/questions/44177417/how-to-display-openweathermap-weather-icon
+https://codepen.io/fefro/pen/xVBLWV
+https://www.codeseek.co/fefro/weather-icons-fonts2-openweathermap-xVBLWV
+
+/**
+     * Update Db Data
+     * @param array $parse_arr
+     * @return int - count added rows
+     */
+    public function updateDbData($parse_arr) {
+        // Get start id for select last cnt rows
+        $today = date("d.m.Y"); 
+        $today_id = intval($this->getRowIdByDate($today));
+        echo '<pre>';
+        echo '<br> TodayID: ' . $today_id . '<br>';
+        echo '<br> Array from Parse: <br>';
+        print_r($parse_arr);
+        echo '<pre>';
+
+        // Compare array $parse_arr and delete coincidences from DB
+        $forecast_db = $this->getForecastDaysFromDb($today_id);
+        foreach ($parse_arr as $k => $arr) {
+            if (in_array($k, $forecast_db)) {
+                unset($parse_arr[$k]);
+            }
+        }
+        echo '<br> Array from Parse AFTER: <br>';
+        print_r($parse_arr);
+        echo '<pre>';
+        
+        // Insert new data in DB
+        $last_id = 0;
+        if (count($parse_arr) >= 1) {
+            foreach ($parse_arr as $key => $row) {
+                $last_id = $this->insertRow($row);
+            }
+        }
+        return $last_id;
+    }
